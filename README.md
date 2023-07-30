@@ -1,5 +1,9 @@
 # rocket-learn
 
+Forked from https://github.com/Rolv-Arild/rocket-learn - see that repo for canonical codebase. 
+
+Updated to use rlgym_sim instead of rlgym package. 
+
 ## What is rocket-learn?
 
 rocket-learn is a machine learning framework specifically designed for Rocket League Reinforcement Learning. 
