@@ -1,7 +1,7 @@
 from typing import Any
 
 import numpy as np
-from rlgym.utils.gamestates import GameState, PlayerData
+from rlgym_sim.utils.gamestates import GameState, PlayerData
 
 BOOST_LOCATIONS = (
     (0.0, -4240.0, 70.0),
@@ -185,7 +185,7 @@ class Nexto_V2_ObsBuilder(BatchedObsBuilder):
 
     @staticmethod
     def _quats_to_rot_mtx(quats: np.ndarray) -> np.ndarray:
-        # From rlgym.utils.math.quat_to_rot_mtx
+        # from rlgym_sim.utils.math.quat_to_rot_mtx
         w = -quats[:, 0]
         x = -quats[:, 1]
         y = -quats[:, 2]

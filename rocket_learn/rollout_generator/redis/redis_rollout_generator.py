@@ -10,8 +10,8 @@ import wandb
 # from matplotlib.figure import Figure
 from redis import Redis
 from redis.exceptions import ResponseError
-from rlgym.utils import ObsBuilder, RewardFunction
-from rlgym.utils.action_parsers import ActionParser
+from rlgym_sim.utils import ObsBuilder, RewardFunction
+from rlgym_sim.utils.action_parsers import ActionParser
 from trueskill import Rating, rate, SIGMA
 
 from rocket_learn.experience_buffer import ExperienceBuffer
