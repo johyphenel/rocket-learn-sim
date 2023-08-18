@@ -78,7 +78,14 @@ class RedisRolloutGenerator(BaseRolloutGenerator):
 
     @staticmethod
     def _process_rollout(rollout_bytes, latest_version, obs_build_func, rew_build_func, act_build_func, max_age):
-        rollout_data, versions, uuid, name, result, has_obs, has_states, has_rewards = _unserialize(rollout_bytes)
+        import zlib
+        try:
+            rollout_data, versions, uuid, name, result, has_obs, has_states, has_rewards = _unserialize(
+                rollout_bytes)
+        except zlib.error as e:
+            print("Encountered zlib error, skipping:")
+            print(e)
+            return None
 
         v_check = [v for v in versions if isinstance(v, int) or v.startswith("-")]
 
