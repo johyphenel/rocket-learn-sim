@@ -13,6 +13,8 @@ from redis.exceptions import ResponseError
 from rlgym_sim.utils import ObsBuilder, RewardFunction
 from rlgym_sim.utils.action_parsers import ActionParser
 from trueskill import Rating, rate, SIGMA
+import logging
+log = logging.getLogger()
 
 from rocket_learn.experience_buffer import ExperienceBuffer
 from rocket_learn.rollout_generator.base_rollout_generator import BaseRolloutGenerator
@@ -83,8 +85,8 @@ class RedisRolloutGenerator(BaseRolloutGenerator):
             rollout_data, versions, uuid, name, result, has_obs, has_states, has_rewards = _unserialize(
                 rollout_bytes)
         except zlib.error as e:
-            print("Encountered zlib error, skipping:")
-            print(e)
+            log.warning("Encountered zlib error, skipping:")
+            log.warning(e)
             return None
 
         v_check = [v for v in versions if isinstance(v, int) or v.startswith("-")]
@@ -172,6 +174,7 @@ class RedisRolloutGenerator(BaseRolloutGenerator):
                 self.obs_build_func, self.rew_func_factory, self.act_parse_factory,
                 self.max_age
             )
+            log.debug(f"res is none? {res is None}")
             if res is not None:
                 buffers, states, versions, uuid, name, result = res
                 # versions = [version for version in versions if version != 'na']  # don't track humans or hardcoded
@@ -179,7 +182,9 @@ class RedisRolloutGenerator(BaseRolloutGenerator):
                 relevant_buffers = self._update_ratings(name, versions, buffers, latest_version, result)
                 if len(relevant_buffers) > 0:
                     self._update_stats(states, [b in relevant_buffers for b in buffers])
+                log.debug(f"len(relevant_buffers)? {len(relevant_buffers)}")
                 yield from relevant_buffers
+            log.debug("generate_rollouts - continue")
 
     def _plot_ratings(self):
         fig_data = []

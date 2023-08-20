@@ -18,6 +18,8 @@ from rocket_learn.agent.actor_critic_agent import ActorCriticAgent
 from rocket_learn.agent.policy import Policy
 from rocket_learn.experience_buffer import ExperienceBuffer
 from rocket_learn.rollout_generator.base_rollout_generator import BaseRolloutGenerator
+import logging
+log = logging.getLogger()
 
 
 class PPO:
@@ -120,7 +122,7 @@ class PPO:
         m_a = self.running_rew_var * self.running_rew_count
         m_b = batch_var * batch_count
         m_2 = m_a + m_b + np.square(delta) * self.running_rew_count * batch_count / (
-                self.running_rew_count + batch_count)
+            self.running_rew_count + batch_count)
         new_var = m_2 / (self.running_rew_count + batch_count)
 
         new_count = batch_count + self.running_rew_count
@@ -157,16 +159,18 @@ class PPO:
             def _iter():
                 size = 0
                 import datetime
-                print(datetime.datetime.now().strftime('%Y-%m-%d - %H:%M:%S'))
-                print(f"Collecting rollouts ({iteration})...")
+                # log.info(datetime.datetime.now().strftime('%Y-%m-%d - %H:%M:%S'))
+                log.info(f"Collecting rollouts ({iteration})...")
                 while size < self.n_steps:
                     try:
                         rollout = next(rollout_gen)
+                        log.debug(f"Collected {rollout.size()} rollouts. {size/self.n_steps}% complete.")
                         if rollout.size() > 0:
                             size += rollout.size()
                             # progress.update(rollout.size())
                             yield rollout
-                    except StopIteration:
+                    except StopIteration as e:
+                        log.debug("StopIteration: ", e)
                         return
 
             self.calculate(_iter(), iteration)
@@ -176,7 +180,8 @@ class PPO:
                 # TODO: Using -1 here is used to create a consistent folder name for the latest save
                 # but it also causes the model to have the wrong current iteration number when loading
                 # that model with the continue iterations flag set.
-                self.save(os.path.join(save_dir, self.logger.project + "_" + "latest"), iteration, save_actor_jit=save_jit, is_latest=True)
+                self.save(os.path.join(save_dir, self.logger.project + "_" + "latest"),
+                          iteration, save_actor_jit=save_jit, is_latest=True)
                 if iteration % iterations_per_save == 0:
                     self.save(current_run_dir, iteration, save_actor_jit=save_jit)  # noqa
 
@@ -195,18 +200,18 @@ class PPO:
             self.total_steps += self.n_steps  # size
             t1 = time.time()
             self.logger.log({
-                "ppo/steps_per_second": self.n_steps / (t1 - t0), 
+                "ppo/steps_per_second": self.n_steps / (t1 - t0),
                 "ppo/total_timesteps": self.total_steps,
-                "ppo/iterations_per_minute": 1 / ((t1 - t0) / 60),            
+                "ppo/iterations_per_minute": 1 / ((t1 - t0) / 60),
             })
-            
-
 
             # pr.disable()
             # s = io.StringIO()
             # sortby = pstats.SortKey.CUMULATIVE
             # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
             # ps.dump_stats(f"profile_{self.total_steps}")
+
+        log.debug("AFTER WHILE!")
 
     def set_logger(self, logger):
         self.logger = logger
